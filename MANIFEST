@@ -1,7 +1,8 @@
 END.pm
 END.xs
-MANIFEST			This list of files
+MANIFEST
 Makefile.PL
 ppport.h
 t/push.t
 t/exp.t
+t/filter.t
