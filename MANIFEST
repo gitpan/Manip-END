@@ -1,0 +1,6 @@
+END.pm
+END.xs
+MANIFEST			This list of files
+Makefile.PL
+ppport.h
+t/manip.t
