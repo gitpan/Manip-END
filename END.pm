@@ -3,7 +3,7 @@ use warnings;
 
 package Manip::END;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 require Exporter;
 our @EXPORT_OK = qw(

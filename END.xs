@@ -20,6 +20,7 @@ char *get_pkg(int index)
 	SV **elem;
 	CV *code;
 	svtype type;
+	HV *stash;
 
 	if (
 		(index < 0) ||
@@ -45,7 +46,7 @@ char *get_pkg(int index)
 			croak("I don't know how to handle type %d variables, index=%d", SvTYPE(code), index);
 	}
 
-	HV *stash = CvSTASH(code);
+	stash = CvSTASH(code);
 
 	return HvNAME(stash);
 }
