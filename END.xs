@@ -5,7 +5,7 @@
 #include "ppport.h"
 #include "perlapi.h"
 
-char *get_pkg(CV *);
+char *get_pkg(CV *, int);
 AV *get_end_array();
 char *get_pkg_for_index(int);
 
@@ -36,10 +36,10 @@ char *get_pkg_for_index(int index)
 
 	elem = av_fetch(PL_endav, index, 0);
 
-	return get_pkg((CV *) *elem);
+	return get_pkg((CV *) *elem, index);
 }
 
-char *get_pkg(CV *code)
+char *get_pkg(CV *code, int index)
 {
 	HV *stash;
 
@@ -66,8 +66,9 @@ AV *
 get_end_array()
 
 char *
-get_pkg(code)
+get_pkg(code, index)
 	CV * code
+    int index
 
 char *
 get_pkg_for_index(index)
