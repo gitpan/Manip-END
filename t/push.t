@@ -2,13 +2,18 @@ use strict;
 
 use Manip::END;
 
-my $obj = Manip::END->get_ref();
+my $obj = Manip::END->new;
 
 print "1..3\n";
 
 ok(@$obj == 1, 1, "correct size");
 
-$obj->unshift(bless(\&end, "tp"));
+$obj->unshift(\&end);
+
+for (0..$#$obj)
+{
+	print "name $_ = '".Manip::END::get_pkg($_)."'\n";
+}
 
 sub end
 {

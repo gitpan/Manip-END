@@ -3,7 +3,7 @@ use warnings;
 
 package Manip::END;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 require Exporter;
 our @EXPORT_OK = qw(
@@ -29,7 +29,7 @@ sub clear_end_array
 	@$self = ();
 }
 
-sub get_ref
+sub new
 {
 	return $self;
 }
@@ -62,7 +62,7 @@ sub filter_sub
 
 	for (my $i = 0; $i <= $max; $i++)
 	{
-		if (! &$sub($self->[$i]))
+		if ( ! &$sub(get_pkg($i)) )
 		{
 			splice(@$self, $i, 1);
 			$max--;
@@ -112,8 +112,18 @@ Manip::END - Mess around with END blocks
 
   set_end_array(sub {...}, sub {...});
 
-  $ar = Manip::END->get_ref;
-  $ar->unshift(sub {...}, sub {...});
+  $ends = Manip::END->new;
+
+  $ends->unshift(sub {...}, sub {...});
+
+  $ends->remove_class("My::Class");
+
+	$ends->remove_isa("My::Base::Class");
+
+	$ends->filter_sub(sub {
+		my $pkg = shift;
+		return $pkg =~ /^MyModule::/ ? 0 : 1;
+	});
 
 =head1 DESCRIPTION
 
@@ -127,14 +137,14 @@ This module gives you access to one of Perl's internal arrays that you're
 not supposed to see so there are a couple of funny things going on.
 
 The array contains an C<undef> for each END blcok that has been encountered,
-it's not really an C<undef> though, it's some sort of raw coderef that's not
+it's not really an C<undef> though, it's a kind of raw coderef that's not
 wrapped in a scalar ref. This leads to fun error messages like
 
   Bizarre copy of CODE in sassign
 
-when you try to assign one of these values to another variable. This can
-make manipulating the array a little delicate if you want to preserve these
-values.
+when you try to assign one of these values to another variable. This all
+means that it's somewhere between difficult and impossible to manipulate
+these values array yourself. B<Use the filter functions provided>.
 
 That said, you can erase them without any problem and you can add your own
 coderefs without any problem too. If you want to selectively remove items
@@ -143,10 +153,23 @@ from the array, that's where the fun begins. You cannot do
 	@$ref = grep {...} @$ref
 
 if any of the C<undef> coderefs will survive the grep as they will cause an
-error such as the one above. It's probably best to use the provided filter
-methods.
+error such as the one above.
 
 =head1 HOW TO USE IT
+
+The most useful thing you can do with it is to remove certain END blocks
+based on the package they belong to. To do you can do something like
+
+  my $ends = Manip::END->new;
+
+	$ends->filter_sub(sub {
+		my $pkg = shift;
+		return $pkg =~ /^MyModule::/ ? 0 : 1;
+	});
+
+This will remove any element of the array where the routine was declared in
+a pakcage that begins with "MyModule::". So none of the END blocks from that
+package will return when your program finishes up.
 
 =head2 EXPORTED FUNCTIONS
 
@@ -159,13 +182,13 @@ C<set_end_array(@blocks)>
 @blocks is an array of subroutine references. This will set the array of END
 blocks.
 
-=head2 CLASS METHODS
+=head2 CONSTRUCTOR
 
-C<Manip::END-E<gt>get_ref()>
+C<Manip::END-E<gt>new()>
 
 This will return a blessed reference to the array of END blocks which you
-can manipulate yourself. You can also invoke several methods on this array
-reference.
+can manipulate yourself. You can maipulate the array directly but it's
+probably much better idea to to use the methods below.
 
 =head2 OBJECT METHODS
 
@@ -188,24 +211,20 @@ This clears the array.
 C<$obj-E<gt>filter_sub($code)>
 
 $code is a reference to a subroutine. For each element of the array, this
-will execute the subroutine in $code, passing in the element as the first
-argument. If the subroutine returns a true value, the element will be kept.
-If it returns false, the element will be removed from the array.
+will execute the subroutine in $code. The first and only argument to the
+routine is the nameof the package in which the END block was declared. If
+the subroutine returns a true value, the element will be kept. If it returns
+false, the element will be removed from the array.
 
 C<$obj-E<gt>remove_isa($class)>
 
 $class is a string containing the name of a class. This removes all of the
-elements which inherit from $class.
+END blocks from packages which inherit from $class.
 
-C<$obj-E<gt>remove_class($class)>
+C<$obj-E<gt>remove_pkg($pkg)>
 
-$class is a string containing the name of a class. This removes all of the
-elements which are blessed into $class.
-
-=head1 TODO
-
-It would be nice if Perl didn't store those funny undef values but rather
-stored real CODE refs.
+$pkg is a string containing the name of a package. This removes all of the
+END blocks from $pkg.
 
 =head1 AUTHOR
 

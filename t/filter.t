@@ -2,37 +2,54 @@ use strict;
 
 use Manip::END;
 
-my $obj = Manip::END->get_ref();
+my $test_num = 1;
 
-print "1..3\n";
+my $obj = Manip::END->new;
 
-ok(@$obj == 1, 1, "correct size");
+print "1..7\n";
 
-$obj->unshift(bless(\&end, "good"));
-$obj->unshift(bless(\&bad_end, "bad"));
+ok(@$obj == 1, "correct size");
+
+$obj->unshift(\&good::end);
+$obj->unshift(\&bad::bad_end);
+
+my @pkgs;
+
+$obj->filter_sub(sub { push(@pkgs, shift())});
+
+ok(@pkgs == 3, "num pkgs");
+ok($pkgs[0] eq "bad", "pkg 0");
+ok($pkgs[1] eq "good", "pkg 1");
+ok($pkgs[2] eq "main", "pkg 2");
 
 $obj->remove_isa("bad");
 
-sub end
-{
-	ok(1, 2, "in my sub");
-}
-
-sub bad_end
-{
-	ok(0, 4, "in bad sub");
-}
-
-END {
-	ok(1, 3, "in end");
-}
-
 sub ok
 {
-	my ($ok, $num, $msg) = @_;
+	my ($ok, $msg) = @_;
 
 	$msg ||= "";
 
 	print $ok ? "" : "not ";
-	print "ok $num - $msg\n"
+	print "ok $test_num - $msg\n";
+
+	$test_num++;
 }
+
+END {
+	ok(1, "main end");
+}
+
+package good;
+sub end
+{
+	::ok(1,, "good end");
+}
+
+package bad;
+
+sub bad_end
+{
+	::ok(0, "bad end");
+}
+
