@@ -10,11 +10,6 @@ ok(@$obj == 1, 1, "correct size");
 
 $obj->unshift(\&end);
 
-for (0..$#$obj)
-{
-	print "name $_ = '".Manip::END::get_pkg($_)."'\n";
-}
-
 sub end
 {
 	ok(1, 2, "in my sub");

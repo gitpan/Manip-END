@@ -3,7 +3,7 @@ use warnings;
 
 package Manip::END;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 require Exporter;
 our @EXPORT_OK = qw(
@@ -88,6 +88,17 @@ sub remove_isa
 	$self->filter_sub(sub { ! UNIVERSAL::isa($_[0], $class) } );
 }
 
+sub remove_pat
+{
+	shift;
+
+	my $pat = shift;
+
+	$pat = ref($_) ? $_ : qr/$pat/;
+
+	$self->filter_sub(sub { ! ($_[0] =~ $pat) } );
+}
+
 sub _check
 {
 	if (grep {! UNIVERSAL::isa($_, "CODE") } @_)
@@ -118,12 +129,11 @@ Manip::END - Mess around with END blocks
 
   $ends->remove_class("My::Class");
 
-	$ends->remove_isa("My::Base::Class");
+  $ends->remove_isa("My::Base::Class");
 
-	$ends->filter_sub(sub {
-		my $pkg = shift;
-		return $pkg =~ /^MyModule::/ ? 0 : 1;
-	});
+  $ends->remove_pat("^My::Modules");
+
+  $ends->filter_sub(\&thing_about_it));
 
 =head1 DESCRIPTION
 
@@ -150,7 +160,7 @@ That said, you can erase them without any problem and you can add your own
 coderefs without any problem too. If you want to selectively remove items
 from the array, that's where the fun begins. You cannot do
 
-	@$ref = grep {...} @$ref
+  @$ref = grep {...} @$ref
 
 if any of the C<undef> coderefs will survive the grep as they will cause an
 error such as the one above.
@@ -158,18 +168,19 @@ error such as the one above.
 =head1 HOW TO USE IT
 
 The most useful thing you can do with it is to remove certain END blocks
-based on the package they belong to. To do you can do something like
+based on the package they belong to. You can do something like
 
   my $ends = Manip::END->new;
 
-	$ends->filter_sub(sub {
-		my $pkg = shift;
-		return $pkg =~ /^MyModule::/ ? 0 : 1;
-	});
+  $ends->filter_sub(\&think_hard_about);
 
-This will remove any element of the array where the routine was declared in
-a pakcage that begins with "MyModule::". So none of the END blocks from that
-package will return when your program finishes up.
+Where C<think_hard_about> is a function that takes in a package name and
+returns a true or false value depending on whether you want to keep or
+remove the END blocks in that package.
+
+There are prebuilt convenience methods for removing the END blocks for a
+specific package, all packages matching a pattern or all packages inheriting
+from a certain package.
 
 =head2 EXPORTED FUNCTIONS
 
@@ -225,6 +236,12 @@ C<$obj-E<gt>remove_pkg($pkg)>
 
 $pkg is a string containing the name of a package. This removes all of the
 END blocks from $pkg.
+
+C<$obj-E<gt>remove_pat($pat)>
+
+$pat is either a reference to a regular expression or a string which will be
+used as a regular expression. This removes all of the END blocks from any
+package which matches the regular expression.
 
 =head1 AUTHOR
 

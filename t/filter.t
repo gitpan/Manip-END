@@ -43,7 +43,7 @@ END {
 package good;
 sub end
 {
-	::ok(1,, "good end");
+	::ok(1, "good end");
 }
 
 package bad;
