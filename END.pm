@@ -3,7 +3,7 @@ use warnings;
 
 package Manip::END;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 require Exporter;
 our @EXPORT_OK = qw(
@@ -62,7 +62,7 @@ sub filter_sub
 
 	for (my $i = 0; $i <= $max; $i++)
 	{
-		if ( ! &$sub(get_pkg($i)) )
+		if ( ! &$sub(get_pkg_for_index($i)) )
 		{
 			splice(@$self, $i, 1);
 			$max--;

@@ -7,3 +7,4 @@ t/push.t
 t/exp.t
 t/filter.t
 TODO
+META.yml                                 Module meta-data (added by MakeMaker)
